@@ -35,3 +35,6 @@ class WLAN:
             return networks
         else:
             raise Exception('Only sta can scan')
+
+    def conenct(self):
+        pass
