@@ -9,6 +9,14 @@ import socket
 STA_IF = 'Wifi Client'
 AP_IF  = 'Wifi Access Point'
 
+STAT_GOT_IP = 'STAT_GOT_IP'
+STAT_CONNECT_FAIL = 'STAT_CONNECT_FAIL'
+STAT_WRONG_PASSWORD = 'STAT_WRONG_PASSWORD'
+STAT_NO_AP_FOUND = 'STAT_NO_AP_FOUND'
+STAT_IDLE = 'STAT_IDLE'
+STAT_CONNECTING = 'STAT_CONNECTING'
+
+
 my_ip = socket.gethostbyname(socket.gethostname())
 
 class WLAN:
@@ -74,4 +82,12 @@ class WLAN:
 
             return (ip, subnet, gw, dns)
 
+        else:
+            #This network interface is a wifi client. return the IP assigned by the DNS
+            thisIP = socket.gethostbyname(socket.gethostname())
+            subnet = '255.255.0.0'
+            gw = '192.168.0.1'
+            dns = '8.8.8.8'
+
+            return (thisIP, subnet, gw, dns)
 
