@@ -1,40 +1,77 @@
-import random
+#https://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/network_basics.html
 
-'''
-This module is used for development on a machine not running micropython
-'''
+# This is meant to emulate the micropython network module so that a develper can write and test code on a PC and then
+    #load to a microcontroller at a later time
 
+from random import randint
+import socket
 
-AP_IF = 'Wifi Access Point'
 STA_IF = 'Wifi Client'
+AP_IF  = 'Wifi Access Point'
+
+my_ip = socket.gethostbyname(socket.gethostname())
 
 class WLAN:
     def __init__(self, kind):
-        self.kind = kind
-        self.mac = b'\xa2 \xa6\x12Y}'
+        self._kind = kind
+        self._active = False
+        self._ssid = None
+        self._pw = None
+        self._isconnected = None
 
-    def config(self, paramStr=None, **kwargs):
-        if paramStr:
-            return getattr(self, paramStr)
+    def active(self, set_state=None):
+        if set_state is None:
+            return self._active
 
-        for key in kwargs:
-            setattr(self, key, kwargs[key])
+        elif isinstance(set_state, bool):
+            self._active = set_state
+
+    def connect(self, ssid, pw):
+        if self._kind == STA_IF:
+            self._ssid = ssid
+            self._pw = pw
+            self._isconnected = True
+
+    def disconnect(self):
+        self._isconnected = False
 
     def scan(self):
-        if self.kind == STA_IF:
-            networks = []
-            for i in range(random.randint(5, 10)):
-                networkName = b'Network' + str(i).encode()
-                otherthing = b'12345'
-                channel = i
-                db = random.randint(-100, 0)
-                type = random.randint(0,5)
-                other = 0
-                tup = (networkName, otherthing, channel, db, type, other)
-                networks.append(tup)
-            return networks
-        else:
-            raise Exception('Only sta can scan')
+        # https://docs.micropython.org/en/latest/esp8266/library/network.html?highlight=wlan#network.wlan.scan
+        if self._kind == STA_IF:
+            available_networks = []
+            for i in range(5):
+                ssid = 'SSID{}'.format(i).encode()
+                bssid = '00000000000{}'.format(i)
+                rssi = 'rssi{}'.format(i)
+                authmode = randint(1, 5 +1)
+                hidden = randint(0, 1 +1)
 
-    def conenct(self):
-        pass
+                available_networks.append((ssid, bssid, rssi, authmode, hidden))
+
+            return available_networks
+
+    def status(self):
+        possibilities = [
+            'STAT_IDLE', #NO CONNECTION or no activity
+            'STAT_CONNECTING', # connecting in progress
+            'STAT_WRONG_PASSWORD', #failed due to incorrect pw
+            'STAT_NO_AP_FOUND', # failed because no ap replied
+            'STAT_CONNECT_FAIL', # failed due to other probs
+            'STAT_GOT_IP', #successful
+        ]
+
+        return possibilities[randint(0, len(possibilities)-1)]
+
+    def isconnected(self):
+        return self._isconnected
+
+    def ifconfig(self):
+        if self._kind == STA_IF:
+            ip = my_ip
+            subnet = '255.255.0.0'
+            gw = '192.168.0.1'
+            dns = '8.8.8.8'
+
+            return (ip, subnet, gw, dns)
+
+

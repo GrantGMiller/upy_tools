@@ -1,4 +1,5 @@
 import network
+import machine
 
 def macBytes_to_hexstr(bytestr):
     hexChars = []
@@ -21,6 +22,24 @@ def auto_setup_wifi_ap():
     ap.config(essid='uPy:' + macstr)
     ap.config(authmode=0)  # No password
 
+def get_ap():
+    ap = network.WLAN(network.AP_IF)
+    return ap
+
 def getsta():
     sta = network.WLAN(network.STA_IF)
     return sta
+
+def get_mac():
+    ap = network.WLAN(network.AP_IF)
+    mac = ap.config('mac')
+    macstr = macBytes_to_hexstr(mac)
+    macstr = macstr.replace('-','')
+    return macstr
+
+def _convert_adc_to_volts(adc):
+    return (adc/1023) * 3.3
+
+def get_adc(pin):
+    value = machine.ADC(pin).read()
+    return _convert_adc_to_volts(value)
