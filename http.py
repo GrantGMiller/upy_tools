@@ -1,10 +1,18 @@
 import socket
 import sys
+try:
+    import re
+except:
+    import ure as re
 
 http_response_header = '''HTTP/1.1 200 OK
 Content-Type: text/html
 Connection: close
 '''
+
+debug = False
+if not debug:
+    print = lambda *a, **k: None
 
 def urlencode(d):
     #d = dict
@@ -69,15 +77,15 @@ class http_request:
     def __init__(self, url=None, data=None, raw=None, client=None,):
         '''
 
-        :param url: #url to send the request to with self.send()
-        :param data: #dict holding any data that you would like to pass in the request body. This will be urlencoded
-        :param raw: #the raw HTTP request
+        :param url: #_url to send the request to with self.send()
+        :param data: #dict holding any data that you would like to pass in the request _body. This will be urlencoded
+        :param raw: #the _raw HTTP request
         :param client: #The socket to send the request to. Default None means a new socket will be created when self.send()
         '''
-        self.url = url #Should include 'http://...'
+        self._url = url #Should include 'http://...'
         self.host = 'www.host.com' #placeholder
-        self.page = '/'
-        self.body = ''
+        self._page = '/'
+        self._body = ''
 
         self.data = data
         if data:
@@ -86,21 +94,21 @@ class http_request:
             self.method = 'GET'
 
         if isinstance(data, dict):
-            self.body += urlencode(data) + '\r\n'
-            print('req.body=', self.body)
+            self._body += urlencode(data) + '\r\n'
+            print('req._body=', self._body)
 
-        if self.url:
-            afterHTTP = self.url.split('//')[-1]
+        if self._url:
+            afterHTTP = self._url.split('//')[-1]
             self.host = afterHTTP.split('/')[0]
-            self.page = afterHTTP.replace(self.host, '')
-            if self.page == '':
-                self.page = '/'
+            self._page = afterHTTP.replace(self.host, '')
+            if self._page == '':
+                self._page = '/'
 
-            self.header = '''{} {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: Micropython\r\n'''.format(self.method, self.page, self.host)
+            self.header = '''{} {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: Micropython\r\n'''.format(self.method, self._page, self.host)
 
-        self.raw = raw
-        if self.raw:
-            print('http_request raw=', self.raw)
+        self._raw = raw
+        if self._raw:
+            print('http_request _raw=', self._raw)
         self.client = client
 
         self.nvps = {}  # name-value-pairs = {'name': 'value'}
@@ -113,11 +121,11 @@ class http_request:
         self.header += '''{}: {}\r\n'''.format(name, value)
 
     def set_body(self, body):
-        self.body = body
+        self._body = body
 
     def _parse_nvps(self):
-        if self.raw:
-            lines = self.raw.split('\r\n')
+        if self._raw:
+            lines = self._raw.split('\r\n')
             for line in lines:
                 try:
                     if '=' in line:
@@ -159,22 +167,22 @@ class http_request:
 
     def send(self):
         '''
-        Sends a HTTP request to self.url with self.data attached
+        Sends a HTTP request to self._url with self.data attached
         '''
         print('req.send()')
         print('self.header=', self.header)
-        print('self.body=', self.body)
-        self.raw = self.header
-        self.raw += '\r\n'
-        self.raw += self.body
-        self.raw += '\r\n'
-        print('req.raw=', self.raw.encode())
+        print('self._body=', self._body)
+        self._raw = self.header
+        self._raw += '\r\n'
+        self._raw += self._body
+        self._raw += '\r\n'
+        print('req._raw=', self._raw.encode())
         s = socket.socket()
         s.settimeout(10)
         #try:
         addr = socket.getaddrinfo(self.host, 80)[0][-1]
         s.connect(addr)
-        s.send(self.raw.encode())
+        s.send(self._raw.encode())
 
         resp_raw = ''
         recv_len = 1024
@@ -191,12 +199,25 @@ class http_request:
             #print('http.request.send Exception:', e)
             #return None
 
+    @property
+    def page(self):
+        return self._page
+
+    @property
+    def url(self):
+        return self._url
+
+    @property
+    def raw(self):
+        return self._raw
+
+
 
 
 class http_response:
     def __init__(self, raw=''):
         self.header = http_response_header
-        self.body = '<html><body>This is the body</body></html>'
+        self.body = '<html><_body>This is the _body</_body></html>'
         if isinstance(raw, bytes):
             raw = raw.decode()
         self.raw = raw
@@ -206,7 +227,7 @@ class http_response:
 
     def get_raw(self):
         self._compile_response()
-        print('http_response raw=', self.raw)
+        print('http_response _raw=', self.raw)
         return self.raw
 
     def set_body(self, body):
@@ -215,7 +236,7 @@ class http_response:
     def _compile_response(self):
         self.raw = ''
         self.raw += self.header
-        self.raw += '\r\n'  # Needed to separate header and body
+        self.raw += '\r\n'  # Needed to separate header and _body
         self.raw += self.body
         self.raw += '\r\n'
 
@@ -223,7 +244,7 @@ class http_response:
         start_phrase = '<html>'
         start_index = self.body.find(start_phrase) + len(start_phrase)
         end_index = start_index
-        # script = '''<meta http-equiv="refresh" content="0; url=http:{}" />\r\n'''.format(url) #html
+        # script = '''<meta http-equiv="refresh" content="0; _url=http:{}" />\r\n'''.format(_url) #html
         script = '''<script>window.location="{}"</script>'''.format(url)  # javascript
         self.body = self.body[:start_index] + script + self.body[end_index:]
 

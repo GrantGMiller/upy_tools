@@ -53,14 +53,14 @@ def DoAutoSetup(server):
 
             Response = http.http_response()
             Response.set_body(
-                '<html><body>Trying to connect to {}<br>Result: {}<br><br><a href="http://{}">Connect to a different network</a><br><a href="http://{}?disable_wifi_ap=true&ssidKill={}">Disable wifi access point</a></body></html>'.format(
+                '<html><_body>Trying to connect to {}<br>Result: {}<br><br><a href="http://{}">Connect to a different network</a><br><a href="http://{}?disable_wifi_ap=true&ssidKill={}">Disable wifi access point</a></_body></html>'.format(
                     ssid, result, my_ip, my_ip, ssid))
             Request.send_response(Response)
         elif disable_wifi_ap is not None:
             Response = http.http_response()
             ssid = Request.get_value('ssidKill')
             Response.set_body(
-                '<html><body>Wifi AP is now disabled.<br>Connect to the network "{}", then <a href="http://{}">click here</a></body></html>'.format(
+                '<html><_body>Wifi AP is now disabled.<br>Connect to the network "{}", then <a href="http://{}">click here</a></_body></html>'.format(
                     ssid, sta.ifconfig()[0]))
             Request.send_response(Response)
 
@@ -74,7 +74,7 @@ def DoAutoSetup(server):
 
             Response = http.http_response()
 
-            html = '<body><html><h1>Welcome to Micropython</h1><br><form method="POST">Select a network:<select name="nm">'
+            html = '<_body><html><h1>Welcome to Micropython</h1><br><form method="POST">Select a network:<select name="nm">'
 
             if sta.active() is not True:
                 sta.active(True)
@@ -82,7 +82,7 @@ def DoAutoSetup(server):
             for net_info in sta.scan():
                 html += '<option>{}</option>'.format(net_info[0].decode())
 
-            html += '</select><br>Password:<input type="password" name="pw"><br><input type="submit" value="Connect Now"></form></body></html>'
+            html += '</select><br>Password:<input type="password" name="pw"><br><input type="submit" value="Connect Now"></form></_body></html>'
             Response.set_body(html)
 
             Request.send_response(Response)
